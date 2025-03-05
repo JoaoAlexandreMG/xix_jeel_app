@@ -10,6 +10,8 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['SESSION_COOKIE_NAME'] = 'your_session_cookie_name'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = True  # Ativar apenas se estiver usando HTTPS
 
 # Configuração do Auth0
 AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN')
@@ -35,24 +37,24 @@ auth0 = oauth.register(
 def index():
     return render_template('inscricao.html')
 
-# Rota de login (faz a autenticação)
-@app.route('/login', methods=['POST'])
+@app.route('/login')
 def login():
-    email = request.form.get('email')
-    password = request.form.get('password')
+    # Redireciona o usuário para o Auth0 para fazer login
+    return auth0.authorize_redirect(redirect_uri=url_for('callback', _external=True))
 
-    # Tente autenticar via Auth0
-    try:
-        token = auth0.authorize_access_token()
-        user = auth0.get('userinfo')
+@app.route('/callback')
+def callback():
+    # Verificar se o estado corresponde
+    token = auth0.authorize_access_token()  # Obtém o token de acesso
+    user = auth0.get('userinfo')  # Recupera as informações do usuário
 
-        if user:
-            session['user'] = user
-            return redirect(url_for('profile'))  # Redireciona para a página protegida
-        else:
-            return redirect(url_for('index'))  # Caso usuário não autenticado, redireciona para login
-    except Exception as e:
-        return str(e)
+    if user:
+        session['user'] = user  # Armazena o usuário na sessão
+        return redirect(url_for('profile'))  # Redireciona para a página protegida
+    else:
+        return redirect(url_for('index'))  # Redireciona para a página de login
+
+
 
 # Página do usuário autenticado
 @app.route('/profile')
