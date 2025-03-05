@@ -1,88 +1,80 @@
-from flask import Flask, jsonify, request, redirect, url_for
-import requests
-from functools import wraps
-from config import Config
-import os
-from flask import render_template
+# 📁 server.py -----
+
+import json
+from os import environ as env
+from urllib.parse import quote_plus, urlencode
+
+from authlib.integrations.flask_client import OAuth
+from dotenv import find_dotenv, load_dotenv
+from flask import Flask, redirect, render_template, session, url_for
+
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
 app = Flask(__name__)
-app.config.from_object(Config)
+app.secret_key = env.get("APP_SECRET_KEY")
 
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
-# Função para validar o token JWT do Auth0
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization", None)
-        if not token:
-            return jsonify({"message": "Token is missing!"}), 401
+oauth = OAuth(app)
 
-        try:
-            response = requests.get(
-                f'https://{app.config["AUTH0_DOMAIN"]}/userinfo',
-                headers={"Authorization": f"Bearer {token}"},
-            )
-            user_info = response.json()
-            if not user_info.get("sub"):
-                raise Exception("Invalid token")
-        except Exception as e:
-            return jsonify({"message": str(e)}), 401
-
-        return f(*args, **kwargs)
-
-    return decorated
-
-
-@app.route("/")
-def home():
-    return render_template('index.html')
-
-@app.route("/programacao")
-def programacao():
-    return render_template('programacao.html')
-
-@app.route("/inscricao")
-def inscricao():
-    return render_template('login.html')
-
-@app.route("/contato")
-def contato():
-    return render_template('contato.html')
-
-@app.route("/private")
-@requires_auth
-def private():
-    return jsonify({"message": "Você está autenticado!"})
-
+oauth.register(
+    "auth0",
+    client_id=env.get("AUTH0_CLIENT_ID"),
+    client_secret=env.get("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
 @app.route("/login")
 def login():
-    return redirect(
-        f"https://{app.config['AUTH0_DOMAIN']}/authorize?response_type=code&client_id={app.config['AUTH0_CLIENT_ID']}&redirect_uri={url_for('callback', _external=True)}"
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True)
     )
 
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
-@app.route("/callback")
+@app.route("/callback", methods=["GET", "POST"])
 def callback():
-    code = request.args.get("code")
-    token_url = f"https://{app.config['AUTH0_DOMAIN']}/oauth/token"
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "client_id": app.config["AUTH0_CLIENT_ID"],
-        "client_secret": app.config["AUTH0_CLIENT_SECRET"],
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": url_for("callback", _external=True),
-    }
+    token = oauth.auth0.authorize_access_token()
+    session["user"] = token
+    return redirect("/")
 
-    response = requests.post(token_url, json=payload, headers=headers)
-    response_data = response.json()
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
-    access_token = response_data.get("access_token")
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(
+        "https://" + env.get("AUTH0_DOMAIN")
+        + "/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": url_for("home", _external=True),
+                "client_id": env.get("AUTH0_CLIENT_ID"),
+            },
+            quote_via=quote_plus,
+        )
+    )
 
-    return jsonify({"access_token": access_token})
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
+@app.route("/")
+def home():
+    return render_template("index.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+@app.route("/programacao")
+def programacao():
+    return render_template("programacao.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+@app.route("/inscricao")
+def inscricao():
+    return render_template("inscricao.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+@app.route("/contato")
+def contato():
+    return render_template("contato.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
+
+# 👆 We're continuing from the steps above. Append this to your server.py file.
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
-
+    app.run(host="0.0.0.0", port=env.get("PORT", 3000))
