@@ -3,6 +3,7 @@ import requests
 from functools import wraps
 from config import Config
 import os
+from flask import render_template
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -34,8 +35,19 @@ def requires_auth(f):
 
 @app.route("/")
 def home():
-    return "API de Backend com Auth0 funcionando!"
+    return render_template('index.html')
 
+@app.route("/programacao")
+def programacao():
+    return render_template('programacao.html')
+
+@app.route("/inscricao")
+def inscricao():
+    return render_template('login.html')
+
+@app.route("/contato")
+def contato():
+    return render_template('contato.html')
 
 @app.route("/private")
 @requires_auth

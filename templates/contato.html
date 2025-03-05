@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JEEL – Jornada da Engenharia Elétrica</title>
-    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
       rel="stylesheet"
@@ -26,22 +29,22 @@
       <nav>
         <ul>
           <li>
-            <a href="index.html" class="menu-link"
+            <a href="/" class="menu-link"
               ><i class="fas fa-home" aria-hidden="true"></i> Início</a
             >
           </li>
           <li>
-            <a href="programacao.html" class="menu-link"
+            <a href="/programacao" class="menu-link"
               ><i class="fa-solid fa-calendar-days"></i> Programação</a
             >
           </li>
           <li>
-            <a href="login.html" class="menu-link"
+            <a href="/inscricao" class="menu-link"
               ><i class="fa-solid fa-gears"></i> Inscrição</a
             >
           </li>
           <li>
-            <a href="contato.html" class="menu-link active"
+            <a href="/contato" class="menu-link active"
               ><i class="fa-solid fa-envelope"></i> Contato</a
             >
           </li>
@@ -62,6 +65,5 @@
         reservados.
       </p>
     </footer>
-    <script src="script.js"></script>
-  </body>
+<script src="{{ url_for('static', filename='script.js') }}"></script>  </body>
 </html>
