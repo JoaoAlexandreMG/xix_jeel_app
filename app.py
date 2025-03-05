@@ -49,17 +49,24 @@ def inscricao():
 def contato():
     return render_template('contato.html')
 
-@app.route("/private")
+
+@app.route("/central_usuario")
 @requires_auth
 def private():
-    return jsonify({"message": "Você está autenticado!"})
+    return render_template('central_usuario.html')
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    return redirect(
-        f"https://{app.config['AUTH0_DOMAIN']}/authorize?response_type=code&client_id={app.config['AUTH0_CLIENT_ID']}&redirect_uri={url_for('callback', _external=True)}"
-    )
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        # Here you would normally validate the email and password with your user database
+        # For simplicity, we will skip that step
+
+        return redirect(
+            f"https://{app.config['AUTH0_DOMAIN']}/authorize?response_type=code&client_id={app.config['AUTH0_CLIENT_ID']}&redirect_uri={url_for('callback', _external=True)}"
+        )
 
 
 @app.route("/callback")

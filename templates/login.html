@@ -53,13 +53,23 @@
     </header>
 
     <section id="inscricao" class="active">
-      <form id="login-form">
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Senha" required />
+      <form id="login-form" action="/login" method="POST">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          required
+        />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Senha"
+          required
+        />
         <button type="submit">Entrar</button>
       </form>
-      <button id="logout-btn" style="display: none">Sair</button>
-      <p id="user-info"></p>
     </section>
 
     <footer>
