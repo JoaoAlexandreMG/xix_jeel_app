@@ -1,7 +1,5 @@
 from flask import Flask, jsonify, request, redirect, url_for
 import requests
-import json
-import os
 from functools import wraps
 from config import Config
 
