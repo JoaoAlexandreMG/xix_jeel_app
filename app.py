@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, redirect, url_for
 import requests
 from functools import wraps
 from config import Config
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -71,4 +72,5 @@ def callback():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=10000 )
+    app.run(debug=True, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+
